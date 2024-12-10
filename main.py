@@ -96,6 +96,8 @@ def select_subject():
 
 
 def eval():
+    global remaining_subjects
+
     finish_button = None
 
     while finish_button is None:
