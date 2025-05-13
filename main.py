@@ -68,31 +68,39 @@ def select_subject():
     global remaining_subjects, counted
 
     while remaining_subjects != 0 or not counted:
-        # Dropdown
-        element = wait.until(EC.presence_of_element_located((By.ID, "subject")))
+        print("Waiting for subject selection page to load...")
+        try:
+            # Dropdown
+            element = wait.until(EC.presence_of_element_located((By.ID, "subject")))
+            print("Dropdown element found")
 
-        # Count available subjects if not already counted
-        if not counted:
-            remaining_subjects = sum(
-                1
-                for option in element.find_elements(By.TAG_NAME, "option")
-                if option.text != "Select Subject"
-                and not option.get_attribute("disabled")
-            )
-            counted = True
-            print(f"Remaining subjects: {remaining_subjects}")
+            # Count available subjects if not already counted
+            if not counted:
+                remaining_subjects = sum(
+                    1
+                    for option in element.find_elements(By.TAG_NAME, "option")
+                    if option.text != "Select Subject"
+                    and not option.get_attribute("disabled")
+                )
+                counted = True
+                print(f"Remaining subjects: {remaining_subjects}")
 
-        # Select the first option that is not "Select Subject" and not disabled
-        for option in element.find_elements(By.TAG_NAME, "option"):
-            if option.text != "Select Subject" and not option.get_attribute("disabled"):
-                option.click()
-                break
+            # Select the first option that is not "Select Subject" and not disabled
+            for option in element.find_elements(By.TAG_NAME, "option"):
+                if option.text != "Select Subject" and not option.get_attribute(
+                    "disabled"
+                ):
+                    option.click()
+                    break
 
-        # Find the start evaluation button by name
-        eval_button = driver.find_element(By.NAME, "evaluateBtn")
-        eval_button.click()
+            # Find the start evaluation button by name
+            eval_button = driver.find_element(By.NAME, "evaluateBtn")
+            eval_button.click()
 
-        eval()
+            eval()
+        except Exception as e:
+            print(f"Error finding dropdown element: {e}")
+            continue
 
 
 def eval():
@@ -101,39 +109,58 @@ def eval():
     finish_button = None
 
     while finish_button is None:
-        # Wait until the page loads
-        form = wait.until(EC.presence_of_element_located((By.TAG_NAME, "form")))
+        print("Waiting for evaluation page to load...")
+        try:
+            # Wait until the page loads
+            form = wait.until(EC.presence_of_element_located((By.TAG_NAME, "form")))
+            print("Evaluation page loaded")
+        except Exception as e:
+            print(f"Error loading evaluation page: {e}")
+            continue
 
-        # Find all <td> elements containing radio buttons
-        tr_elements = form.find_elements(By.TAG_NAME, "tr")
+        try:
+            # Find all <td> elements containing radio buttons
+            tr_elements = form.find_elements(By.TAG_NAME, "tr")
+            print(f"Number of <tr> elements: {len(tr_elements)}")
 
-        # Iterate through each <td>
-        for tr in tr_elements:
-            try:
-                radio_buttons = tr.find_elements(
-                    By.CSS_SELECTOR, "input[type='radio'] + label"
-                )
-                radio_buttons[0].click()
-            except:
-                continue
+            # Iterate through each <td>
+            for tr in tr_elements:
+                try:
+                    radio_buttons = tr.find_elements(
+                        By.CSS_SELECTOR, "input[type='radio'] + label"
+                    )
+                    radio_buttons[0].click()
+                    print("Radio button clicked")
+                except:
+                    continue
+        except:
+            print("No radio buttons found")
 
-        textareas = form.find_elements(By.TAG_NAME, "textarea")
+        try:
+            textareas = form.find_elements(By.TAG_NAME, "textarea")
+            print(f"Number of <textarea> elements: {len(textareas)}")
 
-        for textarea in textareas:
-            textarea.send_keys("N/A")
+            for textarea in textareas:
+                textarea.send_keys("N/A")
+                print("Textarea filled with 'N/A'")
+        except:
+            print("No textareas found")
 
         try:
             # Find the next button by xpath
             next_button = driver.find_element(By.NAME, "next")
             next_button.click()
+            print("Next button clicked")
         except:
             try:
                 finish_button = driver.find_element(By.NAME, "submiteval")
                 finish_button.click()
                 remaining_subjects -= 1
+                print("Finish button clicked")
                 break
             except:
                 finish_button = None
+                print("Finish button not found, retrying...")
                 continue
 
 
